@@ -204,21 +204,6 @@ export function Swap() {
             </Button>
           </div>
         </div>
-        <div className="mt-8">
-          <h3 className="text-xs font-semibold text-gray-600 uppercase dark:text-gray-400">
-            Transaction History
-          </h3>
-          <div className="flex items-center mt-2">
-            <p className="text-sm text-gray-700 dark:text-gray-200">
-              Minted 1000 tokens
-            </p>
-          </div>
-          <div className="flex items-center mt-2">
-            <p className="text-sm text-gray-700 dark:text-gray-200">
-              Swapped 500 tokens
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );
