@@ -6,12 +6,13 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { abi } from "../../lib/EncryptedERC20_ABI";
-import { useEffect, useState } from "react";
-import { BaseContract, BrowserProvider, Contract, ethers } from "ethers";
-import { EthersProvider } from "fhenixjs";
-import { decryptBalance, generatePermits } from "@/lib/permits";
+import { generatePermits } from "@/lib/permits";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { contractStore } from "@/store/contractStore";
+import { instanceStore } from "@/store/instanceStore";
+import { useAccount } from "wagmi";
+import { PermissionStruct } from "@/types/EncryptedERC20_ABI";
+import { useState } from "react";
 
 declare global {
   interface Window {
@@ -20,12 +21,29 @@ declare global {
 }
 
 export function Swap() {
-  const contractAddress = "0xf221CFc17E5A437aCEb19e7Ad0620562300e5061";
-  const [connected, setConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState("");
-  const [provider, setProvider] = useState<EthersProvider | null>(null);
-  const [permission, setPermission] = useState<any>(null);
-  const [contract, setContract] = useState<BaseContract | null>(null);
+  //Zustand Store
+  const contractAddress = contractStore((state) => state.contractAddress);
+  const erc20 = contractStore((state) => state.erc20);
+  const fhenix = instanceStore((state) => state.fhenix);
+  const setFhenix = instanceStore((state) => state.setFhenix);
+  const provider = instanceStore((state) => state.provider);
+
+  //Wagmi
+  const { address } = useAccount();
+
+  //State
+  const [balance, setBalance] = useState<string>("Encrypted");
+
+  const GetEncryptedBalance = async () => {
+    const permit = fhenix!.exportPermits()[contractAddress!];
+    const permission: PermissionStruct = fhenix!.extractPermitPermission(
+      permit!
+    );
+
+    const EncryptedBalance = await erc20!.balanceOf(address!, permission);
+    const DecryptedBalance = fhenix!.unseal(contractAddress!, EncryptedBalance);
+    setBalance(String(DecryptedBalance));
+  };
 
   return (
     <div
@@ -34,8 +52,18 @@ export function Swap() {
     >
       <div className="w-full max-w-md px-4 py-8 bg-white shadow-md rounded-lg dark:bg-gray-800">
         <div className="flex justify-center">
-          <ConnectButton />
-          <h4>{walletAddress}</h4>
+          <ConnectButton />{" "}
+          <Button
+            className="ml-auto"
+            variant="outline"
+            onClick={async () => {
+              setFhenix(
+                await generatePermits(contractAddress!, fhenix!, provider!)
+              );
+            }}
+          >
+            Permit
+          </Button>
         </div>
         <div className="text-center mb-4">
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
@@ -90,10 +118,16 @@ export function Swap() {
           </h3>
           <div className="flex items-center mt-2">
             <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-              balance{" "}
+              {balance}
             </h2>
-            <Button className="ml-auto" variant="outline">
-              Hide
+            <Button
+              className="ml-auto"
+              variant="outline"
+              onClick={() => {
+                GetEncryptedBalance();
+              }}
+            >
+              decrypt
             </Button>
           </div>
         </div>
