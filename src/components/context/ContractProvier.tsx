@@ -17,7 +17,7 @@ export default function ContractProvider({
   const setFhenix = instanceStore((state) => state.setFhenix);
   const setProvider = instanceStore((state) => state.setProvider);
   const setContractAddress = contractStore((state) => state.setContractAddress);
-  const contractAddress = "0xf221CFc17E5A437aCEb19e7Ad0620562300e5061";
+  const contractAddress = "0xf377E352868aCc71619A9d98Ec1B0F901aef23d4";
 
   const HandleContractStore = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
@@ -26,7 +26,7 @@ export default function ContractProvider({
 
     const fhenix = new FhenixClient({ provider });
     setFhenix(fhenix);
-    setContractAddress("0xf221CFc17E5A437aCEb19e7Ad0620562300e5061");
+    setContractAddress(contractAddress);
     const contract = new ethers.Contract(contractAddress, abi, signer);
     setErc20(contract);
     setMounted(true);

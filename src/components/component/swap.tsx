@@ -6,13 +6,13 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { generatePermits } from "@/lib/permits";
+import { generatePermits, revokePermits } from "@/lib/permits";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { contractStore } from "@/store/contractStore";
 import { instanceStore } from "@/store/instanceStore";
 import { useAccount } from "wagmi";
 import { PermissionStruct } from "@/types/EncryptedERC20_ABI";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 declare global {
   interface Window {
@@ -33,8 +33,25 @@ export function Swap() {
 
   //State
   const [balance, setBalance] = useState<string>("Encrypted");
+  const [hasPermit, setHasPermit] = useState<boolean>(false);
+  const [name, setName] = useState<string>("Encrypted");
+  const [symbol, setSymbol] = useState<string>("ENC");
+  const [totalSupply, setTotalSupply] = useState<number>(0);
 
-  const GetEncryptedBalance = async () => {
+  useEffect(() => {
+    getTokenData();
+  }, [fhenix]);
+
+  const getTokenData = async () => {
+    const name = await erc20?.name();
+    setName(name!);
+    const symbol = await erc20?.symbol();
+    setSymbol(symbol!);
+    const totalSupply = await erc20?.totalSupply();
+    setTotalSupply(Number(totalSupply!));
+  };
+
+  const getEncryptedBalance = async () => {
     const permit = fhenix!.exportPermits()[contractAddress!];
     const permission: PermissionStruct = fhenix!.extractPermitPermission(
       permit!
@@ -53,44 +70,54 @@ export function Swap() {
       <div className="w-full max-w-md px-4 py-8 bg-white shadow-md rounded-lg dark:bg-gray-800">
         <div className="flex justify-center">
           <ConnectButton />{" "}
-          <Button
-            className="ml-auto"
-            variant="outline"
-            onClick={async () => {
-              setFhenix(
-                await generatePermits(contractAddress!, fhenix!, provider!)
-              );
-            }}
-          >
-            Permit
-          </Button>
+          {!hasPermit ? (
+            <Button
+              className="ml-auto"
+              variant="outline"
+              onClick={async () => {
+                setFhenix(
+                  await generatePermits(contractAddress!, fhenix!, provider!)
+                );
+                setHasPermit(true);
+              }}
+            >
+              Generate Permits
+            </Button>
+          ) : (
+            <Button
+              className="ml-auto"
+              variant="outline"
+              onClick={async () => {
+                setFhenix(
+                  await revokePermits(contractAddress!, fhenix!, provider!)
+                );
+                setHasPermit(false);
+                setBalance("Encrypted");
+              }}
+            >
+              Remove Permits
+            </Button>
+          )}
         </div>
-        <div className="text-center mb-4">
+        <div className="text-center my-4">
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
-            {/* Token Name: {name.data as any} */}
+            Token Name: {name}
           </h3>
           <p className="text-sm text-gray-700 dark:text-gray-200">
-            {/* Symbol: {symbol.data as any} */}
+            Symbol: {symbol}
           </p>
           <p className="text-sm text-gray-700 dark:text-gray-200">
-            {/* Total Supply: {totalSupply.data as any} */}
+            Total Supply: {totalSupply}
           </p>
         </div>
         <h2 className="text-3xl font-semibold text-center text-gray-800 dark:text-white">
-          Token Swap
+          Encrypted ERC20 Transfer
         </h2>
         <div className="mt-4 flex items-center justify-between">
           <span className="border-b w-1/5 lg:w-1/4" />
           <button
             className="text-xs text-center text-gray-500 uppercase dark:text-gray-400 hover:underline"
-            // onClick={() =>
-            //   writeContract({
-            //     abi,
-            //     address: contractAddress,
-            //     functionName: "mint",
-            //     args: [100000],
-            //   })
-            // }
+            onClick={async () => await erc20!.mint(1000)}
           >
             Mint Tokens
           </button>
@@ -105,10 +132,17 @@ export function Swap() {
               required
               type="text"
             />
+            <Label htmlFor="amount">amount</Label>
+            <Input
+              id="amount"
+              placeholder="Enter amount to transfer"
+              required
+              type="text"
+            />
           </div>
           <div className="flex items-center justify-between mt-4">
             <Button className="w-full" variant="outline">
-              Swap
+              Transfer
             </Button>
           </div>
         </form>
@@ -121,11 +155,10 @@ export function Swap() {
               {balance}
             </h2>
             <Button
+              disabled={!hasPermit}
               className="ml-auto"
               variant="outline"
-              onClick={() => {
-                GetEncryptedBalance();
-              }}
+              onClick={getEncryptedBalance}
             >
               decrypt
             </Button>
