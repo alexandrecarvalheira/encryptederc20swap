@@ -5,6 +5,8 @@ import { Children, useEffect, useState } from "react";
 import { contractStore } from "@/store/contractStore";
 import { instanceStore } from "@/store/instanceStore";
 import { abi } from "@/lib/EncryptedERC20_ABI.json";
+import { useAccount } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 export default function ContractProvider({
   children,
@@ -12,7 +14,7 @@ export default function ContractProvider({
   children: React.ReactNode;
 }) {
   const [mounted, setMounted] = useState(false);
-
+  const { address } = useAccount();
   const setErc20 = contractStore((state) => state.setErc20);
   const setFhenix = instanceStore((state) => state.setFhenix);
   const setProvider = instanceStore((state) => state.setProvider);
@@ -34,7 +36,11 @@ export default function ContractProvider({
 
   useEffect(() => {
     HandleContractStore();
-  }, []);
+  }, [address]);
 
-  return <>{mounted && children}</>;
+  if (address) {
+    return <>{mounted && children}</>;
+  } else {
+    return <ConnectButton />;
+  }
 }
