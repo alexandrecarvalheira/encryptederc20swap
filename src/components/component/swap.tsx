@@ -42,17 +42,16 @@ export function Swap() {
   const [totalSupply, setTotalSupply] = useState<number>(0);
 
   useEffect(() => {
+    const getTokenData = async () => {
+      const name = await erc20?.name();
+      setName(name!);
+      const symbol = await erc20?.symbol();
+      setSymbol(symbol!);
+      const totalSupply = await erc20?.totalSupply();
+      setTotalSupply(Number(totalSupply!));
+    };
     getTokenData();
-  }, [fhenix]);
-
-  const getTokenData = async () => {
-    const name = await erc20?.name();
-    setName(name!);
-    const symbol = await erc20?.symbol();
-    setSymbol(symbol!);
-    const totalSupply = await erc20?.totalSupply();
-    setTotalSupply(Number(totalSupply!));
-  };
+  }, [erc20]);
 
   const getEncryptedBalance = async () => {
     const permit = fhenix!.exportPermits()[contractAddress!];
@@ -98,9 +97,7 @@ export function Swap() {
               className="ml-auto"
               variant="outline"
               onClick={async () => {
-                setFhenix(
-                  await generatePermits(contractAddress!, fhenix!, provider!)
-                );
+                setFhenix(await generatePermits(contractAddress!, provider!));
                 setHasPermit(true);
               }}
             >

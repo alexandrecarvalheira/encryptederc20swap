@@ -1,9 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 
 import { WagmiProvider } from "../components/context/WagmiProvider";
-import ContractProvider from "@/components/context/ContractProvier";
+import ContractProvider from "../components/context/ContractProvider";
 
 export const metadata: Metadata = {
   title: "Encrypted ERC20 Transfer",
