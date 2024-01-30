@@ -21,8 +21,11 @@ export default function ContractProvider({
   const contractAddress = "0xf377E352868aCc71619A9d98Ec1B0F901aef23d4";
 
   const HandleContractStore = async () => {
+    if (!address) {
+      setMounted(true);
+      return;
+    }
     const provider = new ethers.BrowserProvider(window.ethereum);
-    console.log(provider);
     setProvider(provider);
     const signer = await provider.getSigner();
 
@@ -36,5 +39,13 @@ export default function ContractProvider({
     HandleContractStore();
   }, [address]);
 
-  return <>{mounted && children}</>;
+  if (address) {
+    return <>{mounted && children}</>;
+  } else {
+    return (
+      <>
+        <ConnectButton />
+      </>
+    );
+  }
 }
